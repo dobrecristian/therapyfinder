@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediSearch - Latest Treatment Database</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .search-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .search-container {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            font-size: 1.1rem;
+            border: 2px solid #e1e8ed;
+            border-radius: 12px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-btn {
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .suggestion {
+            padding: 0.5rem 1rem;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .suggestion:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .results {
+            display: none;
+            gap: 2rem;
+        }
+
+        .results.show {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .result-card {
+            background: white;
+            border: 1px solid #e1e8ed;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .result-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .result-card h3 {
+            color: #667eea;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .flag {
+            width: 24px;
+            height: 16px;
+            border-radius: 2px;
+        }
+
+        .flag.romania {
+            background: linear-gradient(to right, #0052cc 33%, #ffcd00 33%, #ffcd00 66%, #ce1126 66%);
+        }
+
+        .flag.world {
+            background: linear-gradient(45deg, #4CAF50, #2196F3, #FF9800, #F44336);
+        }
+
+        .treatment-list {
+            list-style: none;
+        }
+
+        .treatment-item {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .treatment-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .treatment-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .treatment-details {
+            font-size: 0.9rem;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+
+        .status.approved {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.trial {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status.research {
+            background: #cce5ff;
+            color: #0066cc;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .search-container {
+                flex-direction: column;
+            }
+            
+            .results.show {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>TherapyFinder</h1>
+            <p>Discover the latest medical treatments available in Romania and worldwide for any pathology</p>
+        </header>
+
+        <div class="search-section">
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Enter a pathology (e.g., leukemia, diabetes, hypertension)..." id="searchInput">
+                <button class="search-btn" onclick="searchTreatments()">Search Treatments</button>
+            </div>
+            
+            <div class="suggestions">
+                <span class="suggestion" onclick="searchFor('leukemia')">Leukemia</span>
+                <span class="suggestion" onclick="searchFor('diabetes')">Diabetes</span>
+                <span class="suggestion" onclick="searchFor('hypertension')">Hypertension</span>
+                <span class="suggestion" onclick="searchFor('breast cancer')">Breast Cancer</span>
+                <span class="suggestion" onclick="searchFor('alzheimer')">Alzheimer's</span>
+                <span class="suggestion" onclick="searchFor('parkinson')">Parkinson's</span>
+                <span class="suggestion" onclick="searchFor('multiple sclerosis')">Multiple Sclerosis</span>
+                <span class="suggestion" onclick="searchFor('heart disease')">Heart Disease</span>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Searching for latest treatments...</p>
+        </div>
+
+        <div class="results" id="results">
+            <div class="result-card">
+                <h3><span class="flag romania"></span> Romania - Latest Treatments</h3>
+                <ul class="treatment-list" id="romaniaList">
+                    <!-- Romania treatments will be populated here -->
+                </ul>
+            </div>
+
+            <div class="result-card">
+                <h3><span class="flag world"></span> Worldwide - Latest Treatments</h3>
+                <ul class="treatment-list" id="worldList">
+                    <!-- Global treatments will be populated here -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const results = document.getElementById('results');
+        const loading = document.getElementById('loading');
+        const romaniaList = document.getElementById('romaniaList');
+        const worldList = document.getElementById('worldList');
+
+        // Sample treatment database - In a real implementation, this would come from APIs
+        const treatmentDatabase = {
+            'leukemia': {
+                romania: [
+                    {
+                        name: 'CAR-T Cell Therapy',
+                        details: 'Available at Institute of Oncology Bucharest. Genetically modified T-cells target leukemia cells.',
+                        status: 'approved'
+                    },
+                    {
+                        name: 'Imatinib (Gleevec)',
+                        details: 'Standard treatment for CML available in Romanian hospitals.',
+                        status: 'approved'
+                    },
+                    {
+                        name: 'Venetoclax Combination Therapy',
+                        details: 'New combination treatment being introduced in major Romanian cancer centers.',
+                        status: 'trial'
+                    }
+                ],
+                world: [
+                    {
+                        name: 'Base Editing Therapy',
+                        details: 'Revolutionary gene editing approach showing 95% remission rates in clinical trials (UK, US).',
+                        status: 'trial'
+                    },
+                    {
+                        name: 'Bispecific T-cell Engagers',
+                        details: 'FDA-approved blinatumomab showing remarkable results for B-cell ALL.',
+                        status: 'approved'
+                    },
+                    {
+                        name: 'NK Cell Therapy',
+                        details: 'Natural Killer cell treatments being developed in Japan and South Korea.',
+                        status: 'research'
+                    }
+                ]
+            },
+            'diabetes': {
+                romania: [
+                    {
+                        name: 'Continuous Glucose Monitors',
+                        details: 'Latest CGM technology available through Romanian National Health Insurance.',
+                        status: 'approved'
+                    },
+                    {
+                        name: 'SGLT2 Inhibitors',
+                        details: 'Modern diabetes medication available in Romanian pharmacies.',
+                        status: 'approved'
+                    },
+                    {
+                        name: 'Insulin Pumps',
+                        details: 'Advanced insulin pump therapy programs in Bucharest and Cluj-Napoca.',
+                        status: 'approved'
+                    }
+                ],
+                world: [
+                    {
+                        name: 'Artificial Pancreas Systems',
+                        details: 'Closed-loop systems combining CGM and insulin pumps (FDA approved).',
+                        status: 'approved'
+                    },
+                    {
+                        name: 'Stem Cell Therapy',
+                        details: 'Beta cell regeneration trials showing promising results in multiple countries.',
+                        status: 'trial'
+                    },
+                    {
+                        name: 'Smart Insulin',
+                        details: 'Glucose-responsive insulin that activates only when blood sugar is high.',
+                        status: 'research'
+                    }
+                ]
+            },
+            'breast cancer': {
+                romania: [
+                    {
+                        name: 'Trastuzumab (Herceptin)',
+                        details: 'HER2-targeted therapy available in Romanian oncology centers.',
+                        status: 'approved'
+                    },
+                    {
+                        name: 'CDK4/6 Inhibitors',
+                        details: 'Palbociclib and ribociclib available for hormone-positive breast cancer.',
+                        status: 'approved'
+                    },
+                    {
+                        name: 'Immunotherapy Trials',
+                        details: 'Clinical trials with pembrolizumab ongoing in Bucharest.',
+                        status: 'trial'
+                    }
+                ],
+                world: [
+                    {
+                        name: 'Antibody-Drug Conjugates',
+                        details: 'Trastuzumab deruxtecan showing exceptional results in metastatic cases.',
+                        status: 'approved'
+                    },
+                    {
+                        name: 'Liquid Biopsies',
+                        details: 'Blood-based tests for early detection and treatment monitoring.',
+                        status: 'approved'
+                    },
+                    {
+                        name: 'mRNA Vaccine Therapy',
+                        details: 'Personalized cancer vaccines based on tumor genetics in development.',
+                        status: 'trial'
+                    }
+                ]
+            }
+        };
+
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchTreatments();
+            }
+        });
+
+        function searchFor(pathology) {
+            searchInput.value = pathology;
+            searchTreatments();
+        }
+
+        async function searchTreatments() {
+            const query = searchInput.value.trim().toLowerCase();
+            if (!query) return;
+
+            loading.classList.add('show');
+            results.classList.remove('show');
+
+            // Simulate API call delay
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            const treatments = treatmentDatabase[query] || generateGenericTreatments(query);
+
+            populateResults(treatments);
+
+            loading.classList.remove('show');
+            results.classList.add('show');
+        }
+
+        function generateGenericTreatments(pathology) {
+            return {
+                romania: [
+                    {
+                        name: 'Standard Care Protocol',
+                        details: `Current standard treatment for ${pathology} available in Romanian hospitals.`,
+                        status: 'approved'
+                    },
+                    {
+                        name: 'Advanced Therapeutics',
+                        details: `Newer treatment options for ${pathology} being implemented in major medical centers.`,
+                        status: 'approved'
+                    },
+                    {
+                        name: 'Clinical Trial Program',
+                        details: `Ongoing research trials for ${pathology} at Romanian medical universities.`,
+                        status: 'trial'
+                    }
+                ],
+                world: [
+                    {
+                        name: 'Cutting-Edge Therapy',
+                        details: `Revolutionary treatment approaches for ${pathology} in development globally.`,
+                        status: 'trial'
+                    },
+                    {
+                        name: 'Precision Medicine',
+                        details: `Personalized treatment protocols for ${pathology} based on genetic profiling.`,
+                        status: 'approved'
+                    },
+                    {
+                        name: 'Experimental Treatment',
+                        details: `Novel therapeutic approaches for ${pathology} in research phase.`,
+                        status: 'research'
+                    }
+                ]
+            };
+        }
+
+        function populateResults(treatments) {
+            romaniaList.innerHTML = '';
+            worldList.innerHTML = '';
+
+            treatments.romania.forEach(treatment => {
+                romaniaList.appendChild(createTreatmentElement(treatment));
+            });
+
+            treatments.world.forEach(treatment => {
+                worldList.appendChild(createTreatmentElement(treatment));
+            });
+        }
+
+        function createTreatmentElement(treatment) {
+            const li = document.createElement('li');
+            li.className = 'treatment-item';
+            
+            li.innerHTML = `
+                <div class="treatment-name">${treatment.name}</div>
+                <div class="treatment-details">${treatment.details}</div>
+                <span class="status ${treatment.status}">${treatment.status.charAt(0).toUpperCase() + treatment.status.slice(1)}</span>
+            `;
+            
+            return li;
+        }
+    </script>
+</body>
+</html>
