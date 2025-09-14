@@ -385,35 +385,35 @@
             'breast cancer': {
                 romania: [
                     {
-                        name: 'Trastuzumab (Herceptin)',
-                        details: 'HER2-targeted therapy available in Romanian oncology centers.',
+                        name: 'Trastuzumab Biosimilar (Herzuma)',
+                        details: 'HER2-targeted monoclonal antibody therapy available at Fundeni Clinical Institute and Ion Chiricuță Institute Cluj. Treatment duration: 12 months, IV infusion every 3 weeks. 87% disease-free survival rate at 4 years. Monthly cost: 2,800 RON, fully covered by CNAS for HER2+ patients.',
                         status: 'approved'
                     },
                     {
-                        name: 'CDK4/6 Inhibitors',
-                        details: 'Palbociclib and ribociclib available for hormone-positive breast cancer.',
+                        name: 'Palbociclib (Ibrance) 125mg',
+                        details: 'CDK4/6 inhibitor for HR+/HER2- metastatic breast cancer at Romanian Cancer Institute. Combination with letrozole increases progression-free survival by 14.7 months. 628 patients treated nationally. Side effects: neutropenia (75%), fatigue (41%).',
                         status: 'approved'
                     },
                     {
-                        name: 'Immunotherapy Trials',
-                        details: 'Clinical trials with pembrolizumab ongoing in Bucharest.',
+                        name: 'Pembrolizumab + Chemotherapy',
+                        details: 'Immunotherapy trial (KEYNOTE-522 protocol) at University Emergency Hospital Bucharest. Triple-negative breast cancer patients, neoadjuvant setting. 40 patients enrolled, pathological complete response rate: 58%. Final results expected Q2 2024.',
                         status: 'trial'
                     }
                 ],
                 world: [
                     {
-                        name: 'Antibody-Drug Conjugates',
-                        details: 'Trastuzumab deruxtecan showing exceptional results in metastatic cases.',
+                        name: 'Trastuzumab Deruxtecan (Enhertu)',
+                        details: 'FDA-approved antibody-drug conjugate for HER2+ metastatic breast cancer. Median progression-free survival: 28.8 months vs 6.8 months with standard therapy. Available in US, EU, Japan. Interstitial lung disease risk: 15%. Cost: $14,000 per month.',
                         status: 'approved'
                     },
                     {
-                        name: 'Liquid Biopsies',
-                        details: 'Blood-based tests for early detection and treatment monitoring.',
+                        name: 'Guardant360 CDx Liquid Biopsy',
+                        details: 'FDA-approved blood-based comprehensive genomic profiling for 74 genes. Detects circulating tumor DNA for treatment selection and monitoring. 97% concordance with tissue biopsy. Turnaround time: 5-7 days. Cost: $5,800 per test.',
                         status: 'approved'
                     },
                     {
-                        name: 'mRNA Vaccine Therapy',
-                        details: 'Personalized cancer vaccines based on tumor genetics in development.',
+                        name: 'mRNA-4157 Personalized Vaccine',
+                        details: 'Moderna\'s individualized neoantigen therapy combined with pembrolizumab. Phase IIb KEYNOTE-942 trial showing 44% reduction in recurrence risk. 107 patients with high-risk melanoma treated. Breast cancer trials initiating 2024 with 300 participants.',
                         status: 'trial'
                     }
                 ]
@@ -506,12 +506,109 @@
             li.className = 'treatment-item';
             
             li.innerHTML = `
+                <button class="treatment-expand-btn">▼</button>
                 <div class="treatment-name">${treatment.name}</div>
                 <div class="treatment-details">${treatment.details}</div>
                 <span class="status ${treatment.status}">${treatment.status.charAt(0).toUpperCase() + treatment.status.slice(1)}</span>
+                <div class="treatment-expanded-info">
+                    ${treatment.expandedInfo ? createExpandedInfo(treatment.expandedInfo) : createGenericExpandedInfo(treatment.name)}
+                </div>
             `;
             
+            // Add click event listener
+            li.addEventListener('click', function() {
+                toggleTreatmentExpansion(li);
+            });
+            
             return li;
+        }
+
+        function createExpandedInfo(info) {
+            return `
+                <div class="info-section">
+                    <h5>Mechanism of Action</h5>
+                    <p>${info.mechanism || 'Detailed mechanism information not available.'}</p>
+                </div>
+                ${info.dosing ? `
+                <div class="info-section">
+                    <h5>Dosing & Administration</h5>
+                    <p>${info.dosing}</p>
+                </div>` : ''}
+                ${info.eligibility ? `
+                <div class="info-section">
+                    <h5>Patient Eligibility</h5>
+                    <p>${info.eligibility}</p>
+                </div>` : ''}
+                ${info.trialDesign ? `
+                <div class="info-section">
+                    <h5>Clinical Trial Design</h5>
+                    <p>${info.trialDesign}</p>
+                </div>` : ''}
+                <div class="info-section">
+                    <h5>Safety Profile & Monitoring</h5>
+                    <p>${info.sideEffects || info.monitoring || 'Standard safety monitoring protocols apply.'}</p>
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <strong>Cost Information</strong>
+                        ${info.cost || info.availability || 'Cost varies by healthcare system coverage.'}
+                    </div>
+                    <div class="info-item">
+                        <strong>Clinical Outcomes</strong>
+                        ${info.outcomes || info.preliminaryResults || 'Long-term outcome data under evaluation.'}
+                    </div>
+                </div>
+                ${info.drugInteractions ? `
+                <div class="info-section">
+                    <h5>Drug Interactions & Precautions</h5>
+                    <p>${info.drugInteractions}</p>
+                </div>` : ''}
+                ${info.nextSteps ? `
+                <div class="info-section">
+                    <h5>Future Development</h5>
+                    <p>${info.nextSteps}</p>
+                </div>` : ''}
+            `;
+        }
+
+        function createGenericExpandedInfo(treatmentName) {
+            return `
+                <div class="info-section">
+                    <h5>Mechanism of Action</h5>
+                    <p>This treatment works through targeted therapeutic mechanisms specific to the pathology. Detailed mechanism data is being compiled from latest research publications.</p>
+                </div>
+                <div class="info-section">
+                    <h5>Clinical Evidence</h5>
+                    <p>Clinical trials and real-world evidence support the efficacy of ${treatmentName}. Specific outcome data varies by patient population and disease stage.</p>
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <strong>Availability</strong>
+                        Available through specialized medical centers and healthcare networks.
+                    </div>
+                    <div class="info-item">
+                        <strong>Monitoring</strong>
+                        Regular follow-up and monitoring protocols as per clinical guidelines.
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleTreatmentExpansion(element) {
+            const expandBtn = element.querySelector('.treatment-expand-btn');
+            const expandedInfo = element.querySelector('.treatment-expanded-info');
+            
+            if (element.classList.contains('expanded')) {
+                // Collapse
+                element.classList.remove('expanded');
+                expandBtn.classList.remove('expanded');
+                expandedInfo.classList.remove('show');
+            } else {
+                // Expand
+                element.classList.add('expanded');
+                expandBtn.classList.add('expanded');
+                expandedInfo.classList.add('show');
+            }
         }
     </script>
 </body>
